@@ -1,36 +1,47 @@
-import _$ from 'jquery';
-import React from 'react';
-import ReactDOM from 'react-dom';
-import TestUtils from 'react-addons-test-utils';
 import jsdom from 'jsdom';
+import jquery from 'jquery';
+import TestUtils from 'react-addons-test-utils';
+import ReactDOM from 'react-dom';
 import chai, { expect } from 'chai';
-import chaiJquery from 'chai-jquery';
+import React from 'react';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 import reducers from '../src/reducers';
+import chaiJquery from 'chai-jquery';
 
-global.document = jsdom.jsdom('<!doctype html><html><body></body></html>');
-global.window = global.document.defaultView;
-global.navigator = global.window.navigator;
-const $ = _$(window);
+// Set up testing environment to run like a browser in the command line
+// tell bundle.js to pass stuff off to mocha
 
-chaiJquery(chai, chai.util, $);
+// instead of window --> global
 
-function renderComponent(ComponentClass, props = {}, state = {}) {
-  const componentInstance =  TestUtils.renderIntoDocument(
+global.document = jsdom.jsdom('<!doctype html><html><body></body></html>'); // initialize and setup fake html file
+global.window = global.document.defaultView; 
+
+const $ = jquery(global.window)  // tells it to use global.window not browser one
+
+// build 'renderComponent' helper that should render a given react class
+function renderComponent(ComponentClass, props, state) {
+  const componentInstance = TestUtils.renderIntoDocument(
     <Provider store={createStore(reducers, state)}>
       <ComponentClass {...props} />
     </Provider>
   );
 
-  return $(ReactDOM.findDOMNode(componentInstance));
+  return $(ReactDOM.findDOMNode(componentInstance)); // produces HTML
 }
 
+// build helper for simulating events
 $.fn.simulate = function(eventName, value) {
-  if (value) {
+  if(value) {
     this.val(value);
   }
   TestUtils.Simulate[eventName](this[0]);
-};
+}
 
-export {renderComponent, expect};
+// to call simulate
+// $('div').simulate
+
+// set up chai-jquery
+chaiJquery(chai, chai.util, $);
+
+export { renderComponent, expect };
